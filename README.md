@@ -1,2 +1,0 @@
-# lur
-Lehigh Underwater Robotics
