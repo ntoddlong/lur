@@ -16,6 +16,7 @@ This documentation is broken into the following sections:
    ros
    computer_vision
    sonar
+   controller
 
 Getting Started
 ---------------
@@ -36,11 +37,12 @@ TODO
 
 ROS
 ---
-This section gives an intro to the `ros <https://docs.ros.org/en/foxy/index.html>`_ environment on the jetson
+This section gives an intro to the `ros <https://docs.ros.org/en/foxy/index.html>`_ environment on the jetson.
 
 .. note::
 
    While it makes things easier, much of ros isn't needed for our use (for example topics are just tcp/ip socket connections). With performance, simplicity, and ease of use in mind, it could eventually be beneficial to redesign things.
+   Look into `microros <https://micro.ros.org/>`_
 
 Computer vision
 ---------------
@@ -49,6 +51,11 @@ This section goes into detail about the computer vision. We use a `YOLO <https:/
 Sonar
 -----
 TODO
+
+Controller
+----------
+This section describes the frontend controller. Very early stages.
+`DearImGui <https://github.com/ocornut/imgui>`_
 
 .. note::
 
