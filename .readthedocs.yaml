@@ -24,24 +24,6 @@ sphinx:
 #    - pdf
 
 # Optionally declare the Python requirements required to build your docs
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #python:
 #   install:
 #   - requirements: docs/requirements.txt
-=======
-python:
-   install:
-   - requirements: docs/requirements.txt
->>>>>>> 1db9769 (Adding readthedocs config file)
-=======
-#python:
-#   install:
-#   - requirements: docs/requirements.txt
->>>>>>> 9a198c3 (Updating readthedocs config file)
-=======
-#python:
-#   install:
-#   - requirements: docs/requirements.txt
->>>>>>> afb988ea70297b9dbbf429ee3d4f71d226add26f
