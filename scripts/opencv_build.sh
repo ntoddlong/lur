@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+set -u
+
 cmake \
 -D CMAKE_BUILD_TYPE=RELEASE \
 -D WITH_CUDA=ON \
