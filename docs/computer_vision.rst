@@ -6,7 +6,8 @@ Computer Vision
 
 OpenCV
 ------
-`OpenCV <https://opencv.org/>`
+`OpenCV <https://opencv.org/>`_
+
 Open a VideoCapture object for each camera and read the frame data into a Mat object
 
 .. note::
@@ -15,4 +16,4 @@ Open a VideoCapture object for each camera and read the frame data into a Mat ob
 
 YOLO
 ----
-`YOLO <https://pjreddie.com/darknet/yolo>`
+`YOLO <https://pjreddie.com/darknet/yolo>`_
