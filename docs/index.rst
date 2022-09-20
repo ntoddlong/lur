@@ -28,7 +28,7 @@ This section documents the docker image that allows for simple testing. Eventual
 
 .. warning::
 
-   Currently under active development, I have only run this on my personal machine and jetson architecture is arm so not ready there, see nvidia docs `here <https://developer.nvidia.com/embedded/learn/tutorials/jetson-container/>`_ for details. Also see, `some nice premade containers <https://github.com/dusty-nv/jetson-containers`_
+   Currently under active development, I have only run this on my personal machine and jetson architecture is arm so not ready there, see nvidia docs `here <https://developer.nvidia.com/embedded/learn/tutorials/jetson-container/>`_ for details. Also see, `some nice premade containers <https://github.com/dusty-nv/jetson-containers>`_
 
 Simulation
 ----------
