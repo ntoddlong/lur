@@ -1,6 +1,9 @@
 Simulation
 ==========
 
-`Mathworks <https://www.mathworks.com/solutions/robotics.html>`_
+.. _Simulink:
 
-`SITL <https://ardupilot.org/dev/docs/sitl-simulator-software-in-the-loop.html>`_
+Simulink
+--------
+`Mathworks <https://www.mathworks.com/solutions/robotics.html>`_
+`Simulink <https://www.mathworks.com/products/simulink.html>`_
