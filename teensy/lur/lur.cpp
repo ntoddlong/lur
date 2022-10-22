@@ -55,6 +55,8 @@ void Motors::add_to_power_vector(int (&values)[NUM_THRUSTERS], const float (&con
   }
 }
 
+// use map
+// this formula might be wrong
 int Motors::normalize(int n, int min=0, int max=100) {
   return (MAX_THRUST - MIN_THRUST) * ((n - min) / (max - min)) + MIN_THRUST;
 }
