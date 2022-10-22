@@ -1,3 +1,8 @@
+#ifndef LUR_H
+#define LUR_H
+
+#pragma once
+
 #include <Servo.h>
 #include "SoftwareSerial.h"
 #include "ping1d.h"
@@ -37,3 +42,5 @@ namespace lur {
   struct Motors;
   struct Sonar;
 }
+
+#endif
