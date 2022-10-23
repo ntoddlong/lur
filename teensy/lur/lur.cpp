@@ -9,7 +9,7 @@
  */
 Motors::Motors() : mode(Mode::disarmed) { }
 
-void Motors::initialize() {
+void Motors::init() {
   for (int i = 0; i < NUM_THRUSTERS; ++i) {
     thrusters[i].attach(thruster_pins[i]);
   }
@@ -78,9 +78,13 @@ bool Motors::spin(int x, int y, int z, int roll, int pitch, int yaw) {
  ***********
  *
  */
-Sonar::Sonar() : ping_serial({sonar_pins[0], sonar_pins[1]}), device(ping_serial), baud(sonar_baud), timeout(sonar_timeout) {
+Sonar::Sonar() : ping_serial({sonar_pins[0], sonar_pins[1]}), device(ping_serial), baud(sonar_baud), timeout(sonar_timeout) { }
+
+bool Sonar::init() {
   ping_serial.begin(baud);
   while (!device.initialize() && millis() < timeout)  {
     // wait up to timeout seconds for ping1d
   }
+  if (!device.update()) return false;
+  return true;
 }
