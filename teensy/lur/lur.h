@@ -16,16 +16,18 @@
 
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 
-const int NUM_THRUSTERS = 8;
-const int MAX_THRUST = 1900;
-const int MIN_THRUST = 1100;
+const int NUM_THRUSTERS    = 8;
+const int MAX_THRUST       = 1900;
+const int MIN_THRUST       = 1100;
 const int thruster_pins[8] = { 2, 3, 4, 5, 6, 7, 8, 9 };
+
 const int sonar_pins[2]    = { 0, 1 };
 const int sonar_baud       = 9600;
-// in milliseconds
-const int sonar_timeout    = 15000;
+const int sonar_timeout    = 15000; // in milliseconds
 
-
+const int imu_pin          = 19;
+const int imu_i2c_address  = 0x28;
+const int imu_timeout      = 15000; // in milliseconds
 
 const float thruster_config[6][8] = {
   /*
@@ -72,8 +74,6 @@ struct Motors {
   https://docs.bluerobotics.com/ping-arduino/functions.html
 */
 struct Sonar {
-  int            baud;
-  int            timeout;
   Ping1D         device;
   SoftwareSerial ping_serial;
   Sonar();

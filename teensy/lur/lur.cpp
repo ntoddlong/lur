@@ -98,11 +98,11 @@ bool Motors::spin(int x, int y, int z, int roll, int pitch, int yaw) {
  ***********
  *
  */
-Sonar::Sonar() : ping_serial({sonar_pins[0], sonar_pins[1]}), device(ping_serial), baud(sonar_baud), timeout(sonar_timeout) { }
+Sonar::Sonar() : ping_serial({sonar_pins[0], sonar_pins[1]}), device(ping_serial) { }
 
 bool Sonar::init() {
-  ping_serial.begin(baud);
-  while (!device.initialize() && millis() < timeout)  {
+  ping_serial.begin(sonar_baud);
+  while (!device.initialize() && millis() < sonar_timeout)  {
     // wait up to timeout seconds for ping1d
   }
   if (!device.update()) return false;
@@ -117,4 +117,13 @@ bool Sonar::init() {
  *
  */
 
-IMU::IMU() {}
+IMU::IMU() : device(Adafruit_BNO055(19, 0x28)) {}
+
+bool IMU::init() {
+  while (!device.begin() && millis() < imu_timeout) {
+    // wait up to timeout seconds for BNO055
+  }
+  // not sure how to check initialization was successful
+  if (millis() > imu_timeout) return false;
+  return true;
+}
