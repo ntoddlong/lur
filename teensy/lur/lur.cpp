@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "lur.h"
 
 /*
@@ -55,19 +56,38 @@ void Motors::add_to_power_vector(int (&values)[NUM_THRUSTERS], const float (&con
   }
 }
 
-// use map and constrain?
-int Motors::normalize(int n, int min=0, int max=100) {
-  return (MAX_THRUST - MIN_THRUST) * ((n - min) / (max - min)) + MIN_THRUST;
+int Motors::normalize(int n, int min, int max) {
+  int val = (n - min) * (MAX_THRUST - MIN_THRUST) / (max - min) + MIN_THRUST;
+  if (val < MIN_THRUST) return MIN_THRUST;
+  if (val > MAX_THRUST) return MAX_THRUST;
+  return val;
+}
+
+void Motors::normalize_array(int (&values)[NUM_THRUSTERS]) {
+  int min = INT_MAX, max = INT_MIN;
+  for (int i = 0; i < NUM_THRUSTERS; ++i) {
+    if (values[i] < min) {
+      min = values[i];
+    }
+    if (values[i] > max) {
+      max = values[i];
+    }
+  }
+  for (int i = 0; i < NUM_THRUSTERS; ++i) {
+    if (values[i] == 0) values[i] = 1500;
+    else values[i] = normalize(values[i], min, max);
+  }
 }
 
 bool Motors::spin(int x, int y, int z, int roll, int pitch, int yaw) {
   int values[NUM_THRUSTERS] = { 0 };
-  add_to_power_vector(values, thruster_config[0], normalize(x));
-  add_to_power_vector(values, thruster_config[1], normalize(y));
-  add_to_power_vector(values, thruster_config[2], normalize(z));
-  add_to_power_vector(values, thruster_config[3], normalize(roll));
-  add_to_power_vector(values, thruster_config[4], normalize(pitch));
-  add_to_power_vector(values, thruster_config[5], normalize(yaw));
+  add_to_power_vector(values, thruster_config[0], x);
+  add_to_power_vector(values, thruster_config[1], y);
+  add_to_power_vector(values, thruster_config[2], z);
+  add_to_power_vector(values, thruster_config[3], roll);
+  add_to_power_vector(values, thruster_config[4], pitch);
+  add_to_power_vector(values, thruster_config[5], yaw);
+  normalize_array(values);
   return set_power(values);
 }
 
@@ -88,3 +108,13 @@ bool Sonar::init() {
   if (!device.update()) return false;
   return true;
 }
+
+/*
+ *
+ *********
+ *  IMU  *
+ *********
+ *
+ */
+
+IMU::IMU() {}
