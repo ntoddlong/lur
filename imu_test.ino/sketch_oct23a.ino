@@ -97,7 +97,7 @@ void loop(void)
   Serial.print("\t\t");
  
 
-  /* Display calibration status for each sensor. */
+  /* Dsplay calibration status for each sensor. */
   uint8_t system, gyro, accel, mag = 0;
   bno.getCalibration(&system, &gyro, &accel, &mag);
   Serial.print("CALIBRATION: Sys=");

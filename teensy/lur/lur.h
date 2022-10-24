@@ -14,6 +14,8 @@
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 
+#include <stdint.h>
+
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 
 const int NUM_THRUSTERS    = 8;
@@ -84,6 +86,7 @@ struct IMU {
   Adafruit_BNO055 device;
   IMU();
   bool init(); 
+  uint8_t get_temp();
 };
 
 #endif

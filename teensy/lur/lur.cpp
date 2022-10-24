@@ -127,3 +127,7 @@ bool IMU::init() {
   if (millis() > imu_timeout) return false;
   return true;
 }
+
+uint8_t IMU::get_temp() {
+  return device.getTemp();
+}
