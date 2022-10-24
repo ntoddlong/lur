@@ -8,43 +8,31 @@
  ************
  *
  */
-Motors::Motors() : mode(Mode::disarmed) { }
+Motors::Motors() : armed{false} { }
 
 void Motors::init() {
-  for (int i = 0; i < NUM_THRUSTERS; ++i) {
+  for (int i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
     thrusters[i].attach(thruster_pins[i]);
   }
-  for (int i = 0; i < NUM_THRUSTERS; ++i) {
+  for (int i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
     thrusters[i].writeMicroseconds(1500);
   }
 }
 
-bool Motors::set_mode(Mode m) {
-  switch (m) {
-    case Mode::disarmed:
-      disarm();
-      mode = m;
-      break;
-    case Mode::depth_hold:
-    case Mode::position_hold:
-    case Mode::manual:
-    case Mode::stabilize:
-      mode = m;
-      break;
-  }
-  return true;
+void Motors::arm() {
+  armed = true;
 }
 
 void Motors::disarm() {
-  for (int i = 0; i < NUM_THRUSTERS; ++i) {
+  for (int i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
     thrusters[i].writeMicroseconds(1500);
   }
-  mode = Mode::disarmed;
+  armed = false;
 }
 
 bool Motors::set_power(const int (&values)[NUM_THRUSTERS]) {
-  if (mode == Mode::disarmed) return false;
-  for (int i = 0; i < NUM_THRUSTERS; ++i) {
+  if (!armed) return false;
+  for (int i = 0; i < sizeof(values) / sizeof(int); ++i) {
     thrusters[i].writeMicroseconds(values[i]);
   }
   return true;
@@ -65,7 +53,7 @@ int Motors::normalize(int n, int min, int max) {
 
 void Motors::normalize_array(int (&values)[NUM_THRUSTERS]) {
   int min = INT_MAX, max = INT_MIN;
-  for (int i = 0; i < NUM_THRUSTERS; ++i) {
+  for (int i = 0; i < sizeof(values) / sizeof(int); ++i) {
     if (values[i] < min) {
       min = values[i];
     }
@@ -73,13 +61,14 @@ void Motors::normalize_array(int (&values)[NUM_THRUSTERS]) {
       max = values[i];
     }
   }
-  for (int i = 0; i < NUM_THRUSTERS; ++i) {
+  for (int i = 0; i < sizeof(values) / sizeof(int); ++i) {
     if (values[i] == 0) values[i] = 1500;
     else values[i] = normalize(values[i], min, max);
   }
 }
 
-bool Motors::spin(int x, int y, int z, int roll, int pitch, int yaw) {
+bool Motors::manual_control(int x, int y, int z, int roll, int pitch, int yaw) {
+  if (!armed) return false;
   int values[NUM_THRUSTERS] = { 0 };
   add_to_power_vector(values, thruster_config[0], x);
   add_to_power_vector(values, thruster_config[1], y);
@@ -98,7 +87,7 @@ bool Motors::spin(int x, int y, int z, int roll, int pitch, int yaw) {
  ***********
  *
  */
-Sonar::Sonar() : ping_serial({sonar_pins[0], sonar_pins[1]}), device(ping_serial) { }
+Sonar::Sonar() : ping_serial{{sonar_pins[0], sonar_pins[1]}}, device{ping_serial} { }
 
 bool Sonar::init() {
   ping_serial.begin(sonar_baud);
@@ -116,8 +105,7 @@ bool Sonar::init() {
  *********
  *
  */
-
-IMU::IMU() : device(Adafruit_BNO055(19, 0x28)) {}
+IMU::IMU() : device{Adafruit_BNO055(19, 0x28)} {}
 
 bool IMU::init() {
   while (!device.begin() && millis() < imu_timeout) {
@@ -131,3 +119,43 @@ bool IMU::init() {
 uint8_t IMU::get_temp() {
   return device.getTemp();
 }
+
+/*
+ *
+ *********
+ *  Sub  *
+ *********
+ *
+ */
+Sub::Sub() : mode{Mode::disarmed}, motors(), sonar(), imu() {}
+
+bool Sub::set_mode(Mode m) {
+  switch (m) {
+    case Mode::disarmed:
+      motors->disarm();
+      mode = m;
+      break;
+    case Mode::armed:
+      motors->arm();
+      mode = m;
+      break;
+    case Mode::manual:
+      if (mode == Mode::disarmed) return false;
+      mode = m;
+      break;
+    case Mode::stabilize:
+      if (mode == Mode::disarmed) return false;
+      mode = m;
+      break;
+    case Mode::depth_hold:
+      if (mode == Mode::disarmed) return false;
+      mode = m;
+      break;
+    case Mode::position_hold:
+      if (mode == Mode::disarmed) return false;
+      mode = m;
+      break;
+  }
+  return true;
+}
+

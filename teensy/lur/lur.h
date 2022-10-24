@@ -52,6 +52,7 @@ const float thruster_config[6][8] = {
 
 enum Mode {
   disarmed,
+  armed,
   stabilize,
   manual,
   depth_hold,
@@ -59,17 +60,17 @@ enum Mode {
 };
 
 struct Motors {
-  Mode  mode;
+  bool armed;
   Servo thrusters[NUM_THRUSTERS];
   Motors();
   void init();
-  bool set_mode(Mode m);
+  void arm();
   void disarm();
   bool set_power(const int (&values)[NUM_THRUSTERS]);
   void add_to_power_vector(int (&values)[NUM_THRUSTERS], const float (&config)[NUM_THRUSTERS], int val);
   int normalize(int n, int min, int max);
   void normalize_array(int (&values)[NUM_THRUSTERS]);
-  bool spin(int x, int y, int z, int roll, int pitch, int yaw);
+  bool manual_control(int x, int y, int z, int roll, int pitch, int yaw);
 };
 
 /*
@@ -87,6 +88,15 @@ struct IMU {
   IMU();
   bool init(); 
   uint8_t get_temp();
+};
+
+struct Sub {
+  Mode  mode;
+  Motors* motors;
+  Sonar* sonar;
+  IMU* imu;
+  Sub();
+  bool set_mode(Mode m);
 };
 
 #endif
