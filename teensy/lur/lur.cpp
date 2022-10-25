@@ -158,4 +158,3 @@ bool Sub::set_mode(Mode m) {
   }
   return true;
 }
-
