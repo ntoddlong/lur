@@ -1,0 +1,27 @@
+should use more ros features like action servers and such
+
+LUR
+  package containing custom message types
+  also contains all constants but I think there is a better way to do this
+
+Jetson pins
+  how to do this? and where? brain? separate node?
+  https://github.com/jetsonhacks/jetsonTX1GPIO
+
+Brain
+  node that coordinates everything
+
+Movement
+  node that connects teensy to jetson via serial
+  handles all calibration and conversions
+  write stabilize mode
+
+Vision
+  node that handles all image data
+
+Map
+  node to handle mapping
+
+Sonar
+  node to handle sonar stuff
+  maybe put this in map?
