@@ -1,8 +1,18 @@
+#include "lur.h"
+
+Motors motors;
+Sonar sonar;
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
+  while (!Serial && millis() < 15000) {
+    // wait up to 15 seconds for USB Serial
+  }
+
+  if (!sonar.init()) Serial.println("ERROR: Failed to initalize sonar");
+  else Serial.println("Sonar initialized");
 }
+
 
 void loop() {
   // put your main code here, to run repeatedly:

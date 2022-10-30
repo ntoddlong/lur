@@ -22,15 +22,6 @@ const int NUM_THRUSTERS    = 8;
 const int MAX_THRUST       = 1900;
 const int MIN_THRUST       = 1100;
 const int thruster_pins[8] = { 2, 3, 4, 5, 6, 7, 8, 9 };
-
-const int sonar_pins[2]    = { 0, 1 };
-const int sonar_baud       = 9600;
-const int sonar_timeout    = 15000; // in milliseconds
-
-const int imu_pin          = 19;
-const int imu_i2c_address  = 0x28;
-const int imu_timeout      = 15000; // in milliseconds
-
 const float thruster_config[6][8] = {
   /*
    *      1  2  3  4  5  6  7  8
@@ -49,6 +40,17 @@ const float thruster_config[6][8] = {
   {  0.0,  0.0,  0.0,  0.0,  1.0,  1.0, -1.0, -1.0  },
   { -1.0,  1.0,  1.0, -1.0,  0.0,  0.0,  0.0,  0.0  }
 };
+
+const int sonar_pins[2]    = { 0, 1 };
+const int sonar_baud       = 9600;
+const int sonar_timeout    = 15000; // in milliseconds
+
+const int imu_pin          = 19;
+const int imu_i2c_address  = 0x28;
+const int imu_timeout      = 15000; // in milliseconds
+
+const int serial_baud      = 9600;
+const int serial_timeout   = 15000; // in milliseconds
 
 enum Mode {
   disarmed,
@@ -88,6 +90,13 @@ struct IMU {
   IMU();
   bool init(); 
   uint8_t get_temp();
+};
+
+struct Jetson {
+  Jetson();
+  bool init();
+  bool send();
+  bool receive();
 };
 
 struct Sub {

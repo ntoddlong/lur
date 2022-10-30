@@ -11,10 +11,10 @@
 Motors::Motors() : armed{false} { }
 
 void Motors::init() {
-  for (int i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
+  for (unsigned i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
     thrusters[i].attach(thruster_pins[i]);
   }
-  for (int i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
+  for (unsigned i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
     thrusters[i].writeMicroseconds(1500);
   }
 }
@@ -24,7 +24,7 @@ void Motors::arm() {
 }
 
 void Motors::disarm() {
-  for (int i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
+  for (unsigned i = 0; i < sizeof(thrusters) / sizeof(Servo); ++i) {
     thrusters[i].writeMicroseconds(1500);
   }
   armed = false;
@@ -32,14 +32,14 @@ void Motors::disarm() {
 
 bool Motors::set_power(const int (&values)[NUM_THRUSTERS]) {
   if (!armed) return false;
-  for (int i = 0; i < sizeof(values) / sizeof(int); ++i) {
+  for (unsigned i = 0; i < sizeof(values) / sizeof(int); ++i) {
     thrusters[i].writeMicroseconds(values[i]);
   }
   return true;
 }
 
 void Motors::add_to_power_vector(int (&values)[NUM_THRUSTERS], const float (&config)[NUM_THRUSTERS], int val) {
-  for (int i = 0; i < sizeof(values) / sizeof(int); ++i) {
+  for (unsigned i = 0; i < sizeof(values) / sizeof(int); ++i) {
     values[i] += config[i] * val;
   }
 }
@@ -53,7 +53,7 @@ int Motors::normalize(int n, int min, int max) {
 
 void Motors::normalize_array(int (&values)[NUM_THRUSTERS]) {
   int min = INT_MAX, max = INT_MIN;
-  for (int i = 0; i < sizeof(values) / sizeof(int); ++i) {
+  for (unsigned i = 0; i < sizeof(values) / sizeof(int); ++i) {
     if (values[i] < min) {
       min = values[i];
     }
@@ -61,7 +61,7 @@ void Motors::normalize_array(int (&values)[NUM_THRUSTERS]) {
       max = values[i];
     }
   }
-  for (int i = 0; i < sizeof(values) / sizeof(int); ++i) {
+  for (unsigned i = 0; i < sizeof(values) / sizeof(int); ++i) {
     if (values[i] == 0) values[i] = 1500;
     else values[i] = normalize(values[i], min, max);
   }
@@ -87,7 +87,7 @@ bool Motors::manual_control(int x, int y, int z, int roll, int pitch, int yaw) {
  ***********
  *
  */
-Sonar::Sonar() : ping_serial{{sonar_pins[0], sonar_pins[1]}}, device{ping_serial} { }
+Sonar::Sonar() : ping_serial({sonar_pins[0], sonar_pins[1]}), device{ping_serial} { }
 
 bool Sonar::init() {
   ping_serial.begin(sonar_baud);
@@ -118,6 +118,20 @@ bool IMU::init() {
 
 uint8_t IMU::get_temp() {
   return device.getTemp();
+}
+
+/*
+ *
+ ************
+ *  Jetson  *
+ ************
+ *
+ */
+
+Jetson::Jetson() {}
+
+bool Jetson::init() {
+  return true;
 }
 
 /*
