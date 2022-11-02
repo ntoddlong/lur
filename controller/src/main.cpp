@@ -1,6 +1,7 @@
 #include "../include/imgui/imgui.h"
 #include "../include/imgui/imgui_impl_glfw.h"
 #include "../include/imgui/imgui_impl_opengl3.h"
+#include "imgui_internal.h"
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 
@@ -75,7 +76,7 @@ int main(int argc, char **argv) {
   //IM_ASSERT(font != NULL);
 
   // Our state
-  bool show_window_selector = false;
+  bool show_window_selector = true;
   bool show_demo = false;
   bool show_style = false;
   bool show_opencv_capture = false;
@@ -98,6 +99,12 @@ int main(int argc, char **argv) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+      if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+        printf("ctrl-space pressed\n");
+      }
+    }
+
     // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
     if (show_demo)
       ImGui::ShowDemoWindow(&show_demo);
@@ -117,25 +124,28 @@ int main(int argc, char **argv) {
     }
 
     if (show_window_selector) {
-      static float f = 0.0f;
-      static int counter = 0;
-
-      ImGui::Begin("Window Selector", &show_window_selector, ImGuiWindowFlags_AlwaysAutoResize);
       // use this if you don't want a close button on window
       //ImGui::Begin("Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-
+      ImGui::Begin("Window Selector", &show_window_selector, ImGuiWindowFlags_AlwaysAutoResize);
       ImGui::Checkbox("Demo Window", &show_demo);
       ImGui::Checkbox("Display Settings", &show_style);
       ImGui::Checkbox("Manual Control", &show_manual_control);
-
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-
+      ImGui::Checkbox("Cameras", &show_cameras);
+      ImGui::Checkbox("App Stats", &show_app_stats);
+      //static float f = 0.0f;
+      //ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
       ImGui::End();
     }
 
     if (show_app_stats) {
-      ImGui::Begin("App Statistics", &show_app_stats, ImGuiWindowFlags_AlwaysAutoResize);
+      ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+      ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+      ImGui::Begin("App Statistics", &show_app_stats, window_flags);
+      ImGui::Text("App Statistics");
+      ImGui::Separator();
       ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      ImGui::Text("%d vertices, %d indices (%d triangles)", io.MetricsRenderVertices, io.MetricsRenderIndices, io.MetricsRenderIndices / 3);
+      ImGui::Text("%d visible windows, %d active allocations", io.MetricsRenderWindows, io.MetricsActiveAllocations);
       ImGui::End();
     }
 
