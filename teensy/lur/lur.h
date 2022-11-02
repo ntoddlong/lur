@@ -62,7 +62,7 @@ enum Mode {
 };
 
 struct Motors {
-  bool armed;
+  bool  armed;
   Servo thrusters[NUM_THRUSTERS];
   Motors();
   void init();
@@ -70,7 +70,7 @@ struct Motors {
   void disarm();
   bool set_power(const int (&values)[NUM_THRUSTERS]);
   void add_to_power_vector(int (&values)[NUM_THRUSTERS], const float (&config)[NUM_THRUSTERS], int val);
-  int normalize(int n, int min, int max);
+  int  normalize(int n, int min, int max);
   void normalize_array(int (&values)[NUM_THRUSTERS]);
   bool manual_control(int x, int y, int z, int roll, int pitch, int yaw);
 };
