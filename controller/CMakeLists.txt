@@ -18,6 +18,11 @@ set(SOURCES
 # do I need imgui_internal.h
 # or imgui_impl_opengl3_loader.h?
 
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+
+target_link_libraries( controller ${OpenCV_LIBS} )
+
 add_executable(controller ${SOURCES})
 
 target_include_directories(controller PUBLIC

@@ -14,6 +14,5 @@ cmake \
 -D CUDA_ARCH_BIN=7.2 \
 -D WITH_CUBLAS=1 \
 -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
--D WITH_QT=ON \
 -D WITH_OPENGL=ON \
 ../opencv
