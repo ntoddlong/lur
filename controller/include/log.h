@@ -1,4 +1,4 @@
-#pragma ONCE
+#pragma once
 
 #include "imgui.h"
 #include <stdio.h>

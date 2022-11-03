@@ -14,6 +14,7 @@ set(SOURCES
   src/main.cpp
   src/log.cpp
   src/teensy_console.cpp
+  src/serial.cpp
   src/imgui/imgui_impl_glfw.cpp                           
   src/imgui/imgui_impl_opengl3.cpp
   src/imgui/imgui.cpp
