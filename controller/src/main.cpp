@@ -1,3 +1,13 @@
+/*
+ * Tags:
+ *  - ERROR
+ *  - TODO
+ *
+ *
+ *
+ *
+ *
+ */
 #include "../include/imgui/imgui.h"
 #include "../include/imgui/imgui_impl_glfw.h"
 #include "../include/imgui/imgui_impl_opengl3.h"
@@ -12,16 +22,16 @@
 #include <unistd.h>
 
 struct Log {
-  ImGuiTextBuffer Buf;
-  ImGuiTextFilter Filter;
-  ImVector<int>   LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
-  bool            AutoScroll;  // Keep scrolling if already at the bottom.
+  ImGuiTextBuffer buf;
+  ImGuiTextFilter filter;
+  ImVector<int>   line_offsets;
+  bool            auto_scroll;
   bool            write_to_file;
   int             count;
   FILE*           log_file;
   char*           log_file_path;
 
-  Log(char* path) : AutoScroll(true), write_to_file(true), log_file_path(path) {
+  Log(char* path) : auto_scroll(true), write_to_file(true), log_file_path(path) {
     Clear();
     log_file = fopen(log_file_path, "ab+");
     if (!log_file) {
@@ -29,7 +39,7 @@ struct Log {
       this->AddLog("[ERROR] Failed to open log file\n");
     }
     else {
-      // could add some kind of idendifier here
+      // TODO add some kind of session idendifier here
       fprintf(log_file, "----------------------------------------\n");
     }
   }
@@ -39,27 +49,27 @@ struct Log {
   }
 
   void Clear() {
-    Buf.clear();
-    LineOffsets.clear();
-    LineOffsets.push_back(0);
+    buf.clear();
+    line_offsets.clear();
+    line_offsets.push_back(0);
   }
 
   void AddLog(const char* fmt, ...) IM_FMTARGS(2) {
     ++count;
-    int old_size = Buf.size();
+    int old_size = buf.size();
     va_list args;
     va_start(args, fmt);
-    Buf.appendfv(fmt, args);
+    buf.appendfv(fmt, args);
     va_end(args);
-    for (int new_size = Buf.size(); old_size < new_size; old_size++)
-      if (Buf[old_size] == '\n')
-        LineOffsets.push_back(old_size + 1);
+    for (int new_size = buf.size(); old_size < new_size; old_size++)
+      if (buf[old_size] == '\n')
+        line_offsets.push_back(old_size + 1);
 
     if (write_to_file) {
       if (log_file) {
-        int l = LineOffsets[LineOffsets.size() - 2];
-        int r = LineOffsets.back();
-        fwrite(Buf.begin() + l, 1, r - l, log_file);
+        int l = line_offsets[line_offsets.size() - 2];
+        int r = line_offsets.back();
+        fwrite(buf.begin() + l, 1, r - l, log_file);
       }
     }
   }
@@ -71,7 +81,7 @@ struct Log {
     }
 
     if (ImGui::BeginPopup("Options")) {
-      ImGui::Checkbox("Auto-scroll", &AutoScroll);
+      ImGui::Checkbox("Auto-scroll", &auto_scroll);
       ImGui::Checkbox("Write To File", &write_to_file);
       ImGui::EndPopup();
     }
@@ -81,7 +91,7 @@ struct Log {
     ImGui::SameLine();
     bool copy = ImGui::Button("Copy");
     ImGui::SameLine();
-    Filter.Draw("Filter", -250.0f);
+    filter.Draw("Filter", -250.0f);
     ImGui::SameLine();
     bool clear = ImGui::Button("Clear");
     ImGui::Separator();
@@ -93,17 +103,17 @@ struct Log {
       ImGui::LogToClipboard();
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    const char* buf = Buf.begin();
-    const char* buf_end = Buf.end();
-    if (Filter.IsActive()) {
+    const char* buffer = buf.begin();
+    const char* buffer_end = buf.end();
+    if (filter.IsActive()) {
       // In this example we don't use the clipper when Filter is enabled.
       // This is because we don't have a random access on the result on our filter.
       // A real application processing logs with ten of thousands of entries may want to store the result of
       // search/filter.. especially if the filtering function is not trivial (e.g. reg-exp).
-      for (int line_no = 0; line_no < LineOffsets.Size; line_no++) {
-        const char* line_start = buf + LineOffsets[line_no];
-        const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
-        if (Filter.PassFilter(line_start, line_end))
+      for (int line_no = 0; line_no < line_offsets.Size; line_no++) {
+        const char* line_start = buffer + line_offsets[line_no];
+        const char* line_end = (line_no + 1 < line_offsets.Size) ? (buffer + line_offsets[line_no + 1] - 1) : buffer_end;
+        if (filter.PassFilter(line_start, line_end))
           ImGui::TextUnformatted(line_start, line_end);
       }
     }
@@ -122,11 +132,11 @@ struct Log {
       // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
       // it possible (and would be recommended if you want to search through tens of thousands of entries).
       ImGuiListClipper clipper;
-      clipper.Begin(LineOffsets.Size);
+      clipper.Begin(line_offsets.Size);
       while (clipper.Step()) {
         for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
-          const char* line_start = buf + LineOffsets[line_no];
-          const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+          const char* line_start = buffer + line_offsets[line_no];
+          const char* line_end = (line_no + 1 < line_offsets.Size) ? (buffer + line_offsets[line_no + 1] - 1) : buffer_end;
           ImGui::TextUnformatted(line_start, line_end);
         }
       }
@@ -134,7 +144,7 @@ struct Log {
     }
     ImGui::PopStyleVar();
 
-    if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+    if (auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
       ImGui::SetScrollHereY(1.0f);
 
     ImGui::EndChild();
@@ -159,8 +169,9 @@ bool get_frame(cv::VideoCapture cap, cv::Mat& frame, cv::ogl::Texture2D& texture
   return true;
 }
 
-// this stuff segfaults if capture is lost or if
-// it's restarted, need to refactor to avoid this
+// doesn't segfault anymore but still
+// have some memory errors (invalid read)
+// run with valgrind
 cv::Mat front_frame;
 cv::Mat bottom_frame;
 cv::VideoCapture front_cap;
@@ -404,6 +415,8 @@ int main(int argc, char **argv) {
     if (show_front_camera) {
       ImGui::Begin("Front Camera", &show_front_camera, ImGuiWindowFlags_AlwaysAutoResize);
       if (front_cap.isOpened()) {
+        // ERROR
+        // Address 0x19572330 is 8 bytes after a block of size 921,672 alloc'd
         front_cap.read(front_frame);
         if (front_frame.empty()) {
           log.AddLog("[ERROR] Blank frame grabbed from front_cap\n");
@@ -420,6 +433,8 @@ int main(int argc, char **argv) {
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
           glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+          // ERROR
+          // invalid read of size 16
           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, front_frame.cols, front_frame.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, front_frame.data);
           ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texture)), ImVec2(front_frame.cols, front_frame.rows));
         }

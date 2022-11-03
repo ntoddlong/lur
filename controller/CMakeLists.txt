@@ -1,4 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
+
+# non-optimized with debug symbols
+#set(CMAKE_BUILD_TYPE Debug)
+# optimized with debug symbols
+#set(CMAKE_BUILD_TYPE RelWithDebInfo)
+
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
