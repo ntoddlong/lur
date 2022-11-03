@@ -57,12 +57,9 @@ struct Log {
 
     if (write_to_file) {
       if (log_file) {
-        const char* buf = Buf.begin();
-        const char* buf_end = Buf.end();
-        int line_no = LineOffsets.size() - 1;
-        const char* line_start = buf + LineOffsets[line_no];
-        const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
-        printf("%s\n", buf);
+        int l = LineOffsets[LineOffsets.size() - 2];
+        int r = LineOffsets.back();
+        fwrite(Buf.begin() + l, 1, r - l, log_file);
       }
     }
   }
