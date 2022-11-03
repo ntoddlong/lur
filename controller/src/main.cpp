@@ -54,44 +54,15 @@ struct Log {
     for (int new_size = Buf.size(); old_size < new_size; old_size++)
       if (Buf[old_size] == '\n')
         LineOffsets.push_back(old_size + 1);
+
     if (write_to_file) {
       if (log_file) {
-        const char* buf = fmt;
-        va_list args_copy;
-        va_copy(args_copy, args);
-
-        int len = ImFormatStringV(NULL, 0, fmt, args);         // FIXME-OPT: could do a first pass write attempt, likely successful on first pass.
-        if (len <= 0) {
-          va_end(args_copy);
-          return;
-        }
-
-        // Add zero-terminator the first time
-        const int write_off = (sizeof(buf) != 0) ? sizeof(buf) : 1;
-        const int needed_sz = write_off + len;
-        int new_capacity = -1;
-        if (needed_sz >= sizeof(buf)) {
-            new_capacity = sizeof(buf) * 2;
-        }
-
-        char buffer[needed_sz];
-        if (new_capacity != -1) {
-          char buffer[new_capacity];
-          for (int i = 0; i < sizeof(buf); ++i) {
-            buffer[i] = buf[i];
-          }
-          ImFormatStringV(&buffer[write_off - 1], (size_t)len + 1, fmt, args_copy);
-          fprintf(log_file, "%d:%s\n", count, buffer);
-          va_end(args_copy);
-        }
-        else {
-          for (int i = 0; i < sizeof(buf); ++i) {
-            buffer[i] = buf[i];
-          }
-          ImFormatStringV(&buffer[write_off - 1], (size_t)len + 1, fmt, args_copy);
-          fprintf(log_file, "%d:%s\n", count, buffer);
-          va_end(args_copy);
-        }
+        const char* buf = Buf.begin();
+        const char* buf_end = Buf.end();
+        int line_no = LineOffsets.size() - 1;
+        const char* line_start = buf + LineOffsets[line_no];
+        const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+        printf("%s\n", buf);
       }
     }
   }
@@ -338,11 +309,11 @@ int main(int argc, char **argv) {
       }
       ImGui::Separator();
       if (ImGui::Button("DISARM")) {
-        log.AddLog("[INFO] Disarm requested, sending request...\n");
+        log.AddLog("[INFO] Disarm requested, asking Teensy to stop...\n");
       }
       ImGui::Separator();
       if (ImGui::Button("LOG")) {
-        log.AddLog("[INFO] Test Log%d\n", count++);
+        log.AddLog("[TEST] Test Log [%-5d:%6.1f]\n", count++, ImGui::GetTime());
       }
       ImGui::Separator();
       ImGui::EndMainMenuBar();
