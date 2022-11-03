@@ -4,16 +4,16 @@
 
 #include "../include/teensy_console.h"
 
-TeensyConsole::TeensyConsole() : serial() {
+TeensyConsole::TeensyConsole() : serial(path) {
   ClearLog();
   memset(input_buf, 0, sizeof(input_buf));
   history_pos = -1;
 
   // "CLASSIFY" is here to provide the test case where "C"+[tab] completes to "CL" and display multiple matches.
-  commands.push_back("HELP");
-  commands.push_back("HISTORY");
-  commands.push_back("CLEAR");
-  commands.push_back("CLASSIFY");
+  commands.push_back("help");
+  commands.push_back("history");
+  commands.push_back("clear");
+  commands.push_back("classify");
   auto_scroll = true;
   scroll_to_bottom = false;
   AddLog("Welcome to Dear ImGui!");
@@ -193,21 +193,23 @@ void TeensyConsole::ExecCommand(const char* command_line) {
   history.push_back(Strdup(command_line));
 
   // Process command
-  if (Stricmp(command_line, "CLEAR") == 0) {
+  if (Stricmp(command_line, "clear") == 0) {
     ClearLog();
   }
-  else if (Stricmp(command_line, "HELP") == 0) {
+  else if (Stricmp(command_line, "help") == 0) {
     AddLog("commands:");
     for (int i = 0; i < commands.Size; i++)
       AddLog("- %s", commands[i]);
   }
-  else if (Stricmp(command_line, "HISTORY") == 0) {
+  else if (Stricmp(command_line, "history") == 0) {
     int first = history.Size - 10;
     for (int i = first > 0 ? first : 0; i < history.Size; i++)
       AddLog("%3d: %s\n", i, history[i]);
   }
   else {
     AddLog("Unknown command: '%s'\n", command_line);
+    serial.write_string("hey\n");
+    printf("%s", serial.read_string());
   }
 
   // On command input, we scroll to bottom even if auto_scroll==false
