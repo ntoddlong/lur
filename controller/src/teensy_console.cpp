@@ -92,7 +92,7 @@ void TeensyConsole::Draw(const char* title, bool* p_open) {
   if (ImGui::Button("Options"))
     ImGui::OpenPopup("Options");
   ImGui::SameLine();
-  filter.Draw("filter [\'-\' exclude]", -250);
+  filter.Draw("filter [\'-\' exclude]", -400.0f);
   ImGui::Separator();
 
   // Reserve enough left-over height for 1 separator + 1 input text

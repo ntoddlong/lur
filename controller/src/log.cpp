@@ -60,7 +60,7 @@ void Log::Draw(const char* title, bool* p_open = NULL) {
   ImGui::SameLine();
   bool copy = ImGui::Button("Copy");
   ImGui::SameLine();
-  filter.Draw("filter [\'-\' exclude]", -250.0f);
+  filter.Draw("filter [\'-\' exclude]", -400.0f);
   ImGui::SameLine();
   bool clear = ImGui::Button("Clear");
   ImGui::Separator();

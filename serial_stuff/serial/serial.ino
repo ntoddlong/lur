@@ -21,18 +21,15 @@ void setup() {
 }
 
 void loop() {
-  imuu.get_info();
+  //imuu.get_info();
+  unsigned int bytes_read = 0;
+  char buf[256]{0};
+  while (Serial.available() && bytes_read < 256) {
+    buf[bytes_read] = Serial.read();
+    ++bytes_read;
+  }
+  buf[bytes_read] = '\0';
+  Serial.flush();
+  if (bytes_read) Serial.printf("I'm teensy, I heard %s\n", buf);
   delay(1000);
-
-  
-//  unsigned int bytes_read = 0;
-//  char buf[256]{0};
-//  while (Serial.available() && bytes_read < 256) {
-//    buf[bytes_read] = Serial.read();
-//    ++bytes_read;
-//  }
-//  buf[bytes_read] = '\0';
-//  Serial.flush();
-//  if (bytes_read) Serial.printf("I'm teensy, I heard %s\n", buf);
-//  delay(1000);
 }
