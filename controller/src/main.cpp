@@ -11,22 +11,146 @@
 #include <stdio.h>
 #include <unistd.h>
 
+struct Log {
+  ImGuiTextBuffer Buf;
+  ImGuiTextFilter Filter;
+  ImVector<int>   LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
+  bool            AutoScroll;  // Keep scrolling if already at the bottom.
+  bool            write_to_file;
+  int             count;
+  FILE*           log_file;
+  char*           log_file_path;
+
+  Log(char* path) : AutoScroll(true), write_to_file(true), log_file_path(path) {
+    Clear();
+    log_file = fopen(log_file_path, "ab+");
+    if (!log_file) {
+      write_to_file = false;
+      this->AddLog("[ERROR] Failed to open log file\n");
+    }
+  }
+
+  ~Log() {
+    if (log_file) fclose(log_file);
+  }
+
+  void Clear() {
+    Buf.clear();
+    LineOffsets.clear();
+    LineOffsets.push_back(0);
+  }
+
+  void AddLog(const char* fmt, ...) IM_FMTARGS(2) {
+    int old_size = Buf.size();
+    va_list args;
+    va_start(args, fmt);
+    Buf.appendfv(fmt, args);
+    va_end(args);
+    for (int new_size = Buf.size(); old_size < new_size; old_size++)
+      if (Buf[old_size] == '\n')
+        LineOffsets.push_back(old_size + 1);
+  }
+
+  void Draw(const char* title, bool* p_open = NULL) {
+    if (!ImGui::Begin(title, p_open)) {
+      ImGui::End();
+      return;
+    }
+
+    if (ImGui::BeginPopup("Options")) {
+      ImGui::Checkbox("Auto-scroll", &AutoScroll);
+      ImGui::Checkbox("Write To File", &write_to_file);
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::Button("Options")) ImGui::OpenPopup("Options");
+    ImGui::SameLine();
+    bool copy = ImGui::Button("Copy");
+    ImGui::SameLine();
+    Filter.Draw("Filter", -250.0f);
+    ImGui::SameLine();
+    bool clear = ImGui::Button("Clear");
+    ImGui::Separator();
+    ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+    if (clear)
+      Clear();
+    if (copy)
+      ImGui::LogToClipboard();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    const char* buf = Buf.begin();
+    const char* buf_end = Buf.end();
+    if (Filter.IsActive()) {
+      // In this example we don't use the clipper when Filter is enabled.
+      // This is because we don't have a random access on the result on our filter.
+      // A real application processing logs with ten of thousands of entries may want to store the result of
+      // search/filter.. especially if the filtering function is not trivial (e.g. reg-exp).
+      for (int line_no = 0; line_no < LineOffsets.Size; line_no++)
+      {
+        const char* line_start = buf + LineOffsets[line_no];
+        const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+        if (Filter.PassFilter(line_start, line_end))
+          ImGui::TextUnformatted(line_start, line_end);
+      }
+    }
+    else
+    {
+      // The simplest and easy way to display the entire buffer:
+      //   ImGui::TextUnformatted(buf_begin, buf_end);
+      // And it'll just work. TextUnformatted() has specialization for large blob of text and will fast-forward
+      // to skip non-visible lines. Here we instead demonstrate using the clipper to only process lines that are
+      // within the visible area.
+      // If you have tens of thousands of items and their processing cost is non-negligible, coarse clipping them
+      // on your side is recommended. Using ImGuiListClipper requires
+      // - A) random access into your data
+      // - B) items all being the  same height,
+      // both of which we can handle since we an array pointing to the beginning of each line of text.
+      // When using the filter (in the block of code above) we don't have random access into the data to display
+      // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
+      // it possible (and would be recommended if you want to search through tens of thousands of entries).
+      ImGuiListClipper clipper;
+      clipper.Begin(LineOffsets.Size);
+      while (clipper.Step())
+      {
+        for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+        {
+          const char* line_start = buf + LineOffsets[line_no];
+          const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+          ImGui::TextUnformatted(line_start, line_end);
+        }
+      }
+      clipper.End();
+    }
+    ImGui::PopStyleVar();
+
+    if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+      ImGui::SetScrollHereY(1.0f);
+
+    ImGui::EndChild();
+    ImGui::End();
+  }
+};
+
 static void glfw_error_callback(int error, const char* description) {
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+// helpful?
 bool get_frame(cv::VideoCapture cap, cv::Mat& frame, cv::ogl::Texture2D& texture, cv::ogl::Buffer& buffer, bool do_buffer) {
   if (!cap.read(frame))
-      return false;
+    return false;
 
   if (do_buffer)
-      buffer.copyFrom(frame, cv::ogl::Buffer::PIXEL_UNPACK_BUFFER, true);
+    buffer.copyFrom(frame, cv::ogl::Buffer::PIXEL_UNPACK_BUFFER, true);
   else
-      texture.copyFrom(frame, true);
+    texture.copyFrom(frame, true);
 
   return true;
 }
 
+// this stuff segfaults if capture is lost or if
+// it's restarted, need to refactor to avoid this
 cv::Mat front_frame;
 cv::Mat bottom_frame;
 cv::VideoCapture front_cap;
@@ -37,6 +161,7 @@ bool init_front_camera() {
     return true;
   }
   else if (front_cap.open(0)) {
+    printf("Front camera initialized\n");
     return true;
   }
   return false;
@@ -47,12 +172,15 @@ bool init_bottom_camera() {
     return true;
   }
   else if (bottom_cap.open(1)) {
+    printf("Bottom camera initialized\n");
     return true;
   }
   return false;
 }
 
 int main(int argc, char **argv) {
+  static Log log((char*)"log.txt");
+
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit())
@@ -94,8 +222,6 @@ int main(int argc, char **argv) {
   ImGuiIO& io = ImGui::GetIO(); (void)io;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
                                                             //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-                                                            // Setup Dear ImGui style
   ImGui::StyleColorsDark();
 
   // Setup Platform/Renderer backends
@@ -119,19 +245,21 @@ int main(int argc, char **argv) {
   //IM_ASSERT(font != NULL);
 
   // State
-  bool show_window_selector = true;
-  bool show_demo = false;
-  bool show_style = false;
-  bool show_opencv_capture = false;
-  bool show_manual_control = false;
-  bool show_camera_window = false;
-  bool show_app_stats = true;
-  bool show_front_camera = false;
-  bool show_bottom_camera = false;
-  bool show_front_camera_error = false;
+  int count = 0;
+  bool show_window_selector     = true;
+  bool show_demo                = false;
+  bool show_style               = false;
+  bool show_opencv_capture      = false;
+  bool show_manual_control      = false;
+  bool show_camera_window       = false;
+  bool show_app_stats           = true;
+  bool show_front_camera        = false;
+  bool show_bottom_camera       = false;
+  bool show_front_camera_error  = false;
   bool show_bottom_camera_error = false;
-  ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-  //const ImVec2 p = ImGui::GetCursorScreenPos();
+  bool show_log                 = false;
+  ImVec4 clear_color            = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+  //const ImVec2 p              = ImGui::GetCursorScreenPos();
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -168,7 +296,11 @@ int main(int argc, char **argv) {
       }
       ImGui::Separator();
       if (ImGui::Button("DISARM")) {
-        printf("disarm\n");
+        log.AddLog("[INFO] Disarm requested, sending request...\n");
+      }
+      ImGui::Separator();
+      if (ImGui::Button("LOG")) {
+        log.AddLog("[INFO] Test Log%d\n", count++);
       }
       ImGui::Separator();
       ImGui::EndMainMenuBar();
@@ -182,10 +314,37 @@ int main(int argc, char **argv) {
       ImGui::Checkbox("Display Settings", &show_style);
       ImGui::Checkbox("Manual Control", &show_manual_control);
       ImGui::Checkbox("Cameras", &show_camera_window);
+      ImGui::Checkbox("Log", &show_log);
       ImGui::Checkbox("App Stats", &show_app_stats);
       //static float f = 0.0f;
       //ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
       ImGui::End();
+    }
+
+    if (show_log) {
+
+      // For the demo: add a debug button _BEFORE_ the normal log window contents
+      // We take advantage of a rarely used feature: multiple calls to Begin()/End() are appending to the _same_ window.
+      // Most of the contents of the window will be added by the log.Draw() call.
+      ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+      ImGui::Begin("Log", &show_log);
+      //if (ImGui::SmallButton("[Debug] Add 5 entries"))
+      //{
+      //    static int counter = 0;
+      //    const char* categories[3] = { "info", "warn", "error" };
+      //    const char* words[] = { "Bumfuzzled", "Cattywampus", "Snickersnee", "Abibliophobia", "Absquatulate", "Nincompoop", "Pauciloquent" };
+      //    for (int n = 0; n < 5; n++)
+      //    {
+      //        const char* category = categories[counter % IM_ARRAYSIZE(categories)];
+      //        const char* word = words[counter % IM_ARRAYSIZE(words)];
+      //        log.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
+      //            ImGui::GetFrameCount(), category, ImGui::GetTime(), word);
+      //        counter++;
+      //    }
+      //}
+      ImGui::End();
+
+      log.Draw("Log", &show_log);
     }
 
     if (show_app_stats) {
@@ -215,11 +374,19 @@ int main(int argc, char **argv) {
           else show_front_camera_error = true;
         }
       }
+      if (front_cap.isOpened()) {
+        ImGui::SameLine();
+        ImGui::Text("(OPEN)");
+      }
       if (ImGui::Button("Bottom Camera")) {
         if (!show_bottom_camera) {
           if (init_bottom_camera()) show_bottom_camera = true;
           else show_bottom_camera_error = true;
         }
+      }
+      if (bottom_cap.isOpened()) {
+        ImGui::SameLine();
+        ImGui::Text("(OPEN)");
       }
       ImGui::End();
     }
@@ -228,17 +395,16 @@ int main(int argc, char **argv) {
       ImGui::Begin("Front Camera", &show_front_camera, ImGuiWindowFlags_AlwaysAutoResize);
       if (front_cap.isOpened()) {
         front_cap.read(front_frame);
-        // check if we succeeded
         if (front_frame.empty()) {
-            printf("ERROR\n-----\nBlank frame grabbed\n");
-            show_front_camera = false;
-            show_front_camera_error = true;
+          log.AddLog("[ERROR] Blank frame grabbed from front_cap\n");
+          show_front_camera = false;
+          show_front_camera_error = true;
         }
         else {
           GLuint texture;
           glGenTextures(1, &texture);
           glBindTexture(GL_TEXTURE_2D, texture);
-          
+
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
@@ -260,9 +426,9 @@ int main(int argc, char **argv) {
       if (bottom_cap.isOpened()) {
         bottom_cap.read(bottom_frame);
         if (bottom_frame.empty()) {
-            printf("ERROR\n-----\nBlank frame grabbed\n");
-            show_bottom_camera = false;
-            show_bottom_camera_error = true;
+          log.AddLog("[ERROR] Blank frame grabbed from bottom_cap\n");
+          show_bottom_camera = false;
+          show_bottom_camera_error = true;
         }
         else {
           GLuint texture;
