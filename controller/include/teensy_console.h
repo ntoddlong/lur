@@ -1,6 +1,7 @@
 #pragma once
 
 #include "imgui.h"
+#include "serial.h"
 
 // Portable helpers
 static int   Stricmp(const char* s1, const char* s2); 
@@ -12,6 +13,7 @@ static void  Strtrim(char* s);
 static int TextEditCallbackStub(ImGuiInputTextCallbackData* data); 
 
 struct TeensyConsole {
+  char*                 path = (char*)"/dev/ttyACM0";
   char                  input_buf[256];
   ImVector<char*>       items;
   ImVector<const char*> commands;
@@ -20,6 +22,7 @@ struct TeensyConsole {
   ImGuiTextFilter       filter;
   bool                  auto_scroll;
   bool                  scroll_to_bottom;
+  Serial                serial;
 
   TeensyConsole(); 
   ~TeensyConsole(); 

@@ -4,7 +4,7 @@
 
 #include "../include/teensy_console.h"
 
-TeensyConsole::TeensyConsole() {
+TeensyConsole::TeensyConsole() : serial() {
   ClearLog();
   memset(input_buf, 0, sizeof(input_buf));
   history_pos = -1;
