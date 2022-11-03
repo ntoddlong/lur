@@ -28,6 +28,10 @@ struct Log {
       write_to_file = false;
       this->AddLog("[ERROR] Failed to open log file\n");
     }
+    else {
+      // could add some kind of idendifier here
+      fprintf(log_file, "----------------------------------------\n");
+    }
   }
 
   ~Log() {
@@ -41,6 +45,7 @@ struct Log {
   }
 
   void AddLog(const char* fmt, ...) IM_FMTARGS(2) {
+    ++count;
     int old_size = Buf.size();
     va_list args;
     va_start(args, fmt);
@@ -51,7 +56,42 @@ struct Log {
         LineOffsets.push_back(old_size + 1);
     if (write_to_file) {
       if (log_file) {
-        fprintf(log_file, "%d", count++);
+        const char* buf = fmt;
+        va_list args_copy;
+        va_copy(args_copy, args);
+
+        int len = ImFormatStringV(NULL, 0, fmt, args);         // FIXME-OPT: could do a first pass write attempt, likely successful on first pass.
+        if (len <= 0) {
+          va_end(args_copy);
+          return;
+        }
+
+        // Add zero-terminator the first time
+        const int write_off = (sizeof(buf) != 0) ? sizeof(buf) : 1;
+        const int needed_sz = write_off + len;
+        int new_capacity = -1;
+        if (needed_sz >= sizeof(buf)) {
+            new_capacity = sizeof(buf) * 2;
+        }
+
+        char buffer[needed_sz];
+        if (new_capacity != -1) {
+          char buffer[new_capacity];
+          for (int i = 0; i < sizeof(buf); ++i) {
+            buffer[i] = buf[i];
+          }
+          ImFormatStringV(&buffer[write_off - 1], (size_t)len + 1, fmt, args_copy);
+          fprintf(log_file, "%d:%s\n", count, buffer);
+          va_end(args_copy);
+        }
+        else {
+          for (int i = 0; i < sizeof(buf); ++i) {
+            buffer[i] = buf[i];
+          }
+          ImFormatStringV(&buffer[write_off - 1], (size_t)len + 1, fmt, args_copy);
+          fprintf(log_file, "%d:%s\n", count, buffer);
+          va_end(args_copy);
+        }
       }
     }
   }
