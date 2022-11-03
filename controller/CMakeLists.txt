@@ -21,9 +21,10 @@ set(SOURCES
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-target_link_libraries( controller ${OpenCV_LIBS} )
 
 add_executable(controller ${SOURCES})
+
+target_link_libraries( controller ${OpenCV_LIBS} )
 
 target_include_directories(controller PUBLIC
   ${PROJECT_SOURCE_DIR}/include/imgui

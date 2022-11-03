@@ -3,10 +3,39 @@
 #include "../include/imgui/imgui_impl_opengl3.h"
 #include "imgui_internal.h"
 #include <GLFW/glfw3.h>
+
+#include "opencv2/core.hpp"
+#include "opencv2/opencv.hpp"
+
 #include <stdio.h>
 
 static void glfw_error_callback(int error, const char* description) {
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+
+cv::Mat front_frame;
+cv::Mat bottom_frame;
+cv::VideoCapture front_cap;
+cv::VideoCapture bottom_cap;
+
+bool init_front_camera() {
+  if (front_cap.isOpened()) {
+    return true;
+  }
+  else if (front_cap.open(0)) {
+    return true;
+  }
+  return false;
+}
+
+bool init_bottom_camera() {
+  if (bottom_cap.isOpened()) {
+    return true;
+  }
+  else if (bottom_cap.open(1)) {
+    return true;
+  }
+  return false;
 }
 
 int main(int argc, char **argv) {
@@ -75,7 +104,7 @@ int main(int argc, char **argv) {
   //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
   //IM_ASSERT(font != NULL);
 
-  // Our state
+  // State
   bool show_window_selector = true;
   bool show_demo = false;
   bool show_style = false;
@@ -83,7 +112,12 @@ int main(int argc, char **argv) {
   bool show_manual_control = false;
   bool show_cameras = false;
   bool show_app_stats = false;
+  bool show_front_camera = false;
+  bool show_bottom_camera = false;
+  bool show_front_camera_error = false;
+  bool show_bottom_camera_error = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+  //const ImVec2 p = ImGui::GetCursorScreenPos();
 
   // Main loop
   while (!glfwWindowShouldClose(window)) {
@@ -119,6 +153,9 @@ int main(int argc, char **argv) {
         ImGui::EndMenu();
       }
       ImGui::Separator();
+      if (ImGui::Button("DISARM")) {
+        printf("disarm\n");
+      }
       ImGui::Separator();
       ImGui::EndMainMenuBar();
     }
@@ -158,10 +195,74 @@ int main(int argc, char **argv) {
 
     if (show_cameras) {
       ImGui::Begin("Cameras", &show_cameras, ImGuiWindowFlags_AlwaysAutoResize);
+      if (ImGui::Button("Front Camera")) {
+        if (!show_front_camera) {
+          if (init_front_camera()) show_front_camera = true;
+          else show_front_camera_error = true;
+          printf("front\n");
+        }
+      }
+      if (ImGui::Button("Bottom Camera")) {
+        if (!show_bottom_camera) {
+          if (init_bottom_camera()) show_bottom_camera = true;
+          else show_bottom_camera_error = true;
+          printf("bottom\n");
+        }
+      }
+      ImGui::End();
+    }
+    if (show_front_camera) {
+      ImGui::Begin("Front Camera", &show_front_camera, ImGuiWindowFlags_AlwaysAutoResize);
+      front_cap.read(front_frame);
+        // check if we succeeded
+        if (front_frame.empty()) {
+            printf("ERROR\n-----\nBlank frame grabbed\n");
+        }
+        else {
+          GLuint texture;
+          glGenTextures(1, &texture);
+          glBindTexture(GL_TEXTURE_2D, texture);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+          glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, front_frame.cols, front_frame.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, front_frame.data);
+          ImGui::Image(reinterpret_cast<void*>( static_cast<intptr_t>( texture ) ), ImVec2( front_frame.cols, front_frame.rows ));
+        }
       ImGui::End();
     }
 
-    if (show_opencv_capture) {
+    if (show_bottom_camera) {
+      ImGui::Begin("Bottom Camera", &show_bottom_camera, ImGuiWindowFlags_AlwaysAutoResize);
+      bottom_cap.read(bottom_frame);
+      if (bottom_frame.empty()) {
+          printf("ERROR\n-----\nBlank frame grabbed\n");
+      }
+      else {
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bottom_frame.cols, bottom_frame.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, bottom_frame.data);
+        ImGui::Image(reinterpret_cast<void*>( static_cast<intptr_t>( texture ) ), ImVec2( bottom_frame.cols, bottom_frame.rows ));
+      }
+      ImGui::End();
+    }
+
+    if (show_front_camera_error) {
+      ImGui::Begin("Front Camera", &show_front_camera_error, ImGuiWindowFlags_AlwaysAutoResize);
+      ImGui::Text("ERROR\n-----\nFailed to initialize front camera");
+      ImGui::End();
+    }
+    if (show_bottom_camera_error) {
+      ImGui::Begin("Bottom Camera", &show_bottom_camera_error, ImGuiWindowFlags_AlwaysAutoResize);
+      ImGui::Text("ERROR\n-----\nFailed to initialize bottom camera");
+      ImGui::End();
     }
 
     if (show_manual_control) {
