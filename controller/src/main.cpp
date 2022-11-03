@@ -49,6 +49,11 @@ struct Log {
     for (int new_size = Buf.size(); old_size < new_size; old_size++)
       if (Buf[old_size] == '\n')
         LineOffsets.push_back(old_size + 1);
+    if (write_to_file) {
+      if (log_file) {
+        fprintf(log_file, "%d", count++);
+      }
+    }
   }
 
   void Draw(const char* title, bool* p_open = NULL) {
@@ -63,7 +68,8 @@ struct Log {
       ImGui::EndPopup();
     }
 
-    if (ImGui::Button("Options")) ImGui::OpenPopup("Options");
+    if (ImGui::Button("Options"))
+      ImGui::OpenPopup("Options");
     ImGui::SameLine();
     bool copy = ImGui::Button("Copy");
     ImGui::SameLine();
@@ -86,16 +92,14 @@ struct Log {
       // This is because we don't have a random access on the result on our filter.
       // A real application processing logs with ten of thousands of entries may want to store the result of
       // search/filter.. especially if the filtering function is not trivial (e.g. reg-exp).
-      for (int line_no = 0; line_no < LineOffsets.Size; line_no++)
-      {
+      for (int line_no = 0; line_no < LineOffsets.Size; line_no++) {
         const char* line_start = buf + LineOffsets[line_no];
         const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
         if (Filter.PassFilter(line_start, line_end))
           ImGui::TextUnformatted(line_start, line_end);
       }
     }
-    else
-    {
+    else {
       // The simplest and easy way to display the entire buffer:
       //   ImGui::TextUnformatted(buf_begin, buf_end);
       // And it'll just work. TextUnformatted() has specialization for large blob of text and will fast-forward
@@ -111,10 +115,8 @@ struct Log {
       // it possible (and would be recommended if you want to search through tens of thousands of entries).
       ImGuiListClipper clipper;
       clipper.Begin(LineOffsets.Size);
-      while (clipper.Step())
-      {
-        for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-        {
+      while (clipper.Step()) {
+        for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++) {
           const char* line_start = buf + LineOffsets[line_no];
           const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
           ImGui::TextUnformatted(line_start, line_end);
