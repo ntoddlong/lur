@@ -1,12 +1,38 @@
 /*
- * Tags:
+ * -------
+ * Objects
+ * -------
+ *  - State
+ *  - Log
+ *
+ * ----
+ * Tags
+ * ----
  *  - ERROR
  *  - TODO
+ *  
+ * -------
+ * Windows
+ * -------
+ *  - main_menu
+ *  - window_selector
+ *  - demo
+ *  - style
+ *  - manual_control
+ *  - camera_window
+ *  - app_stats
+ *  - front_camera
+ *  - bottom_camera
+ *  - front_camera_error
+ *  - bottom_camera_error
+ *  - log
  *
- *
- *
- *
- *
+ * ----------------
+ * Helper Functions
+ * ----------------
+ *  - init_front_camera()
+ *  - init_bottom_camera()
+ *  - get_frame()
  */
 #include "../include/imgui/imgui.h"
 #include "../include/imgui/imgui_impl_glfw.h"
@@ -20,6 +46,10 @@
 
 #include <stdio.h>
 #include <unistd.h>
+
+// TODO
+struct State {
+};
 
 struct Log {
   ImGuiTextBuffer buf;
@@ -303,9 +333,11 @@ int main(int argc, char **argv) {
     }
 
     // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+    // demo
     if (show_demo)
       ImGui::ShowDemoWindow(&show_demo);
 
+    // main_menu
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("Windows")) {
         ImGui::MenuItem("Cameras", "", &show_camera_window);
@@ -327,6 +359,7 @@ int main(int argc, char **argv) {
       ImGui::EndMainMenuBar();
     }
 
+    // window_selector
     if (show_window_selector) {
       // use this if you don't want a close button on window
       //ImGui::Begin("Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize);
@@ -342,6 +375,7 @@ int main(int argc, char **argv) {
       ImGui::End();
     }
 
+    // log
     if (show_log) {
 
       // For the demo: add a debug button _BEFORE_ the normal log window contents
@@ -368,6 +402,7 @@ int main(int argc, char **argv) {
       log.Draw("Log", &show_log);
     }
 
+    // app_stats
     if (show_app_stats) {
       ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
       ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
@@ -380,6 +415,7 @@ int main(int argc, char **argv) {
       ImGui::End();
     }
 
+    // style
     if (show_style) {
       ImGui::Begin("Display Settings", &show_style, ImGuiWindowFlags_AlwaysAutoResize);
       ImGui::ShowStyleEditor();
@@ -387,6 +423,7 @@ int main(int argc, char **argv) {
       ImGui::End();
     }
 
+    // camera_window
     if (show_camera_window) {
       ImGui::Begin("Cameras", &show_camera_window, ImGuiWindowFlags_AlwaysAutoResize);
       if (ImGui::Button("Front Camera")) {
@@ -412,6 +449,7 @@ int main(int argc, char **argv) {
       ImGui::End();
     }
 
+    // front_camera
     if (show_front_camera) {
       ImGui::Begin("Front Camera", &show_front_camera, ImGuiWindowFlags_AlwaysAutoResize);
       if (front_cap.isOpened()) {
@@ -446,6 +484,7 @@ int main(int argc, char **argv) {
       ImGui::End();
     }
 
+    // bottom_camera
     if (show_bottom_camera) {
       ImGui::Begin("Bottom Camera", &show_bottom_camera, ImGuiWindowFlags_AlwaysAutoResize);
       if (bottom_cap.isOpened()) {
@@ -475,17 +514,20 @@ int main(int argc, char **argv) {
       ImGui::End();
     }
 
+    // front_camera_error
     if (show_front_camera_error) {
       ImGui::Begin("Front Camera", &show_front_camera_error, ImGuiWindowFlags_AlwaysAutoResize);
       ImGui::Text("ERROR\n-----\nFailed to initialize front camera");
       ImGui::End();
     }
+    // bottom_camera_error
     if (show_bottom_camera_error) {
       ImGui::Begin("Bottom Camera", &show_bottom_camera_error, ImGuiWindowFlags_AlwaysAutoResize);
       ImGui::Text("ERROR\n-----\nFailed to initialize bottom camera");
       ImGui::End();
     }
 
+    // manual_control
     if (show_manual_control) {
       ImGui::Begin("Manual Control", &show_manual_control, ImGuiWindowFlags_AlwaysAutoResize);
       ImGui::End();
