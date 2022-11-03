@@ -6,11 +6,24 @@
 
 #include "opencv2/core.hpp"
 #include "opencv2/opencv.hpp"
+#include <opencv2/core/opengl.hpp>
 
 #include <stdio.h>
 
 static void glfw_error_callback(int error, const char* description) {
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+
+bool get_frame(cv::VideoCapture cap, cv::Mat& frame, cv::ogl::Texture2D& texture, cv::ogl::Buffer& buffer, bool do_buffer) {
+  if (!cap.read(frame))
+      return false;
+
+  if (do_buffer)
+      buffer.copyFrom(frame, cv::ogl::Buffer::PIXEL_UNPACK_BUFFER, true);
+  else
+      texture.copyFrom(frame, true);
+
+  return true;
 }
 
 cv::Mat front_frame;
@@ -110,8 +123,8 @@ int main(int argc, char **argv) {
   bool show_style = false;
   bool show_opencv_capture = false;
   bool show_manual_control = false;
-  bool show_cameras = false;
-  bool show_app_stats = false;
+  bool show_camera_window = false;
+  bool show_app_stats = true;
   bool show_front_camera = false;
   bool show_bottom_camera = false;
   bool show_front_camera_error = false;
@@ -145,7 +158,7 @@ int main(int argc, char **argv) {
 
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("Windows")) {
-        ImGui::MenuItem("Cameras", "", &show_cameras);
+        ImGui::MenuItem("Cameras", "", &show_camera_window);
         ImGui::MenuItem("Display Settings", "", &show_style);
         ImGui::MenuItem("App Stats", "", &show_app_stats);
         ImGui::Separator();
@@ -167,7 +180,7 @@ int main(int argc, char **argv) {
       ImGui::Checkbox("Demo Window", &show_demo);
       ImGui::Checkbox("Display Settings", &show_style);
       ImGui::Checkbox("Manual Control", &show_manual_control);
-      ImGui::Checkbox("Cameras", &show_cameras);
+      ImGui::Checkbox("Cameras", &show_camera_window);
       ImGui::Checkbox("App Stats", &show_app_stats);
       //static float f = 0.0f;
       //ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
@@ -193,24 +206,23 @@ int main(int argc, char **argv) {
       ImGui::End();
     }
 
-    if (show_cameras) {
-      ImGui::Begin("Cameras", &show_cameras, ImGuiWindowFlags_AlwaysAutoResize);
+    if (show_camera_window) {
+      ImGui::Begin("Cameras", &show_camera_window, ImGuiWindowFlags_AlwaysAutoResize);
       if (ImGui::Button("Front Camera")) {
         if (!show_front_camera) {
           if (init_front_camera()) show_front_camera = true;
           else show_front_camera_error = true;
-          printf("front\n");
         }
       }
       if (ImGui::Button("Bottom Camera")) {
         if (!show_bottom_camera) {
           if (init_bottom_camera()) show_bottom_camera = true;
           else show_bottom_camera_error = true;
-          printf("bottom\n");
         }
       }
       ImGui::End();
     }
+
     if (show_front_camera) {
       ImGui::Begin("Front Camera", &show_front_camera, ImGuiWindowFlags_AlwaysAutoResize);
       front_cap.read(front_frame);
