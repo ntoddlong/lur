@@ -31,5 +31,6 @@ void loop() {
   buf[bytes_read] = '\0';
   Serial.flush();
   if (bytes_read) Serial.printf("I'm teensy, I heard %s\n", buf);
+  Serial.flush();
   delay(1000);
 }
