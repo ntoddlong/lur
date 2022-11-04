@@ -209,7 +209,8 @@ void TeensyConsole::ExecCommand(const char* command_line) {
   else {
     AddLog("Unknown command: '%s'\n", command_line);
     serial.write_string(command_line);
-    printf("%s\n", serial.read_string());
+    //printf("%s\n", serial.read_string());
+    serial.read_string();
   }
 
   // On command input, we scroll to bottom even if auto_scroll==false

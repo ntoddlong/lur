@@ -11,17 +11,18 @@ void setup() {
   }
 
   if (!imuu.init()) Serial.println("ERROR: Failed to initalize imu");
-  else Serial.println("imu initialized");
+//  else Serial.println("imu initialized");
 
 //  if (!motors.init()) Serial.println("ERROR: Failed to initalize motors");
 //  else Serial.println("Motors initialized");
 
 //  if (!sonar.init()) Serial.println("ERROR: Failed to initalize sonar");
 //  else Serial.println("Sonar initialized");
+  Serial.flush();
 }
 
 void loop() {
-  //imuu.get_info();
+//  Serial.println(imuu.get_temp());
   unsigned int bytes_read = 0;
   char buf[256]{0};
   while (Serial.available() && bytes_read < 256) {
@@ -29,8 +30,7 @@ void loop() {
     ++bytes_read;
   }
   buf[bytes_read] = '\0';
-  Serial.flush();
-  if (bytes_read) Serial.printf("I'm teensy, I heard %s\n", buf);
+  if (bytes_read) Serial.printf("[%lu] %s\n", bytes_read, buf);
   Serial.flush();
   delay(1000);
 }

@@ -58,15 +58,28 @@ bool Serial::init(char* path, Termios& tty) {
 }
 
 bool Serial::write_string(const char* s) {
-  //char buf[256]{'\0'};
-  //while (1) {
-  //  printf("Enter a string:\n");
-  //  scanf("%255s", buf);
-  //  if ((char)buf[0] == 'q') break;
-  //  write(serial_port, buf, sizeof(buf));
-  //}
-  if (write(serial_port, s, sizeof(s)) == -1)
-    return false;
+  // as with read(), we may not write as many bytes as we intend, so we need to
+  // track how many bytes have been written, and where to resume writing if we
+  // have bytes left to write.
+  size_t bytes_written = 0;
+  const char *next_byte = s;
+  while (bytes_written < strlen(s)+1) {
+    ssize_t bytes = write(serial_port, next_byte, strlen(s)+1 - bytes_written);
+    // negative bytes written indicates an error
+    if (bytes < 0) {
+      // TODO add this to log
+      perror("write_fd::write()");
+      // TODO: as with read(), if fd is a socket, then we should be checking for
+      //     EINTR and continuing when the error is EINTR.
+      return false;
+    }
+    // otherwise, advance forward to the next bytes to write
+    else {
+      bytes_written += bytes;
+      next_byte += bytes;
+    }
+  }
+  //printf("wrote %zu bytes\n", bytes_written);
   return true;
 }
 
@@ -82,6 +95,7 @@ char* Serial::read_string() {
   // Read bytes. The behaviour of read() (e.g. does it block?,
   // how long does it block for?) depends on the configuration
   // settings above, specifically VMIN and VTIME
+  //printf("sizeof(read_buf): %lu\nread_buf: %s\n", sizeof(read_buf), read_buf);
   int num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
 
   // n is the number of bytes read. n may be 0 if no bytes were received, and can also be -1 to signal an error.
@@ -96,7 +110,7 @@ char* Serial::read_string() {
   }
   // Here we assume we received ASCII data, but you might be sending raw bytes (in that case, don't try and
   // print it to the screen like this!)
-  printf("Read %i bytes. Received message: %s\n", num_bytes, read_buf);
+  printf("%s\n", read_buf);
   char* s = read_buf;
   return s;
 }
