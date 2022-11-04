@@ -214,8 +214,12 @@ int main(int argc, char **argv) {
     // main_menu
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("Windows")) {
-        ImGui::MenuItem("Cameras", "", &show_camera_window);
+        ImGui::MenuItem("Demo Window", "", &show_demo);
         ImGui::MenuItem("Display Settings", "", &show_style);
+        ImGui::MenuItem("Manual Control", "", &show_manual_control);
+        ImGui::MenuItem("Cameras", "", &show_camera_window);
+        ImGui::MenuItem("Log", "", &show_log);
+        ImGui::MenuItem("Teensy Console", "", &show_teensy_console);
         ImGui::MenuItem("App Stats", "", &show_app_stats);
         ImGui::Separator();
         ImGui::MenuItem("Window Selector", "", &show_window_selector);
@@ -391,7 +395,6 @@ int main(int argc, char **argv) {
 
     // show_teensy_console
     if (show_teensy_console) {
-      ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
       ImGui::Begin("Teensy Console", &show_teensy_console);
       ImGui::End();
 
@@ -414,6 +417,66 @@ int main(int argc, char **argv) {
     // manual_control
     if (show_manual_control) {
       ImGui::Begin("Manual Control", &show_manual_control, ImGuiWindowFlags_AlwaysAutoResize);
+      ImGui::PushItemWidth(-ImGui::GetFontSize() * 15);
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        // Draw a bunch of primitives
+        ImGui::Text("All primitives");
+        static float sz = 36.0f;
+        static float thickness = 3.0f;
+        static int ngon_sides = 6;
+        static bool circle_segments_override = false;
+        static int circle_segments_override_v = 12;
+        static bool curve_segments_override = false;
+        static int curve_segments_override_v = 8;
+        static ImVec4 colf = ImVec4(1.0f, 1.0f, 0.4f, 1.0f);
+        ImGui::DragFloat("Size", &sz, 0.2f, 2.0f, 100.0f, "%.0f");
+        ImGui::DragFloat("Thickness", &thickness, 0.05f, 1.0f, 8.0f, "%.02f");
+        ImGui::SliderInt("N-gon sides", &ngon_sides, 3, 12);
+        ImGui::Checkbox("##circlesegmentoverride", &circle_segments_override);
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+        circle_segments_override |= ImGui::SliderInt("Circle segments override", &circle_segments_override_v, 3, 40);
+        ImGui::Checkbox("##curvessegmentoverride", &curve_segments_override);
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+        curve_segments_override |= ImGui::SliderInt("Curves segments override", &curve_segments_override_v, 3, 40);
+        ImGui::ColorEdit4("Color", &colf.x);
+
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        const ImU32 col = ImColor(colf);
+        const float spacing = 10.0f;
+        const ImDrawFlags corners_tl_br = ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight;
+        const float rounding = sz / 5.0f;
+        const int circle_segments = circle_segments_override ? circle_segments_override_v : 0;
+        const int curve_segments = curve_segments_override ? curve_segments_override_v : 0;
+        float x = p.x + 4.0f;
+        float y = p.y + 4.0f;
+        float th = 1.0f;
+        // forward
+        x += sz + spacing;
+        draw_list->AddTriangleFilled(ImVec2(x+sz*0.5f,y), ImVec2(x+sz, y+sz-0.5f), ImVec2(x, y+sz-0.5f), col);
+        x -= sz + spacing;
+        y += sz + spacing;
+        draw_list->AddRectFilled(ImVec2(x, y), ImVec2(x, y), col);
+        // left
+        draw_list->AddTriangleFilled(ImVec2(x,y+sz*0.5f), ImVec2(x+sz, y), ImVec2(x+sz, y+sz), col);  // Triangle
+        x += sz + spacing;
+        // middle
+        draw_list->AddRectFilled(ImVec2(x, y), ImVec2(x+sz, y+sz), col);
+        x += sz + spacing;
+        // right
+        draw_list->AddTriangleFilled(ImVec2(x,y), ImVec2(x, y+sz), ImVec2(x+sz, y+sz*0.5f), col);
+        y += sz + spacing;
+        x -= sz + spacing;
+        // bottom
+        draw_list->AddTriangleFilled(ImVec2(x,y), ImVec2(x+sz, y), ImVec2(x+sz*0.5f, y+sz), col);
+        y += sz + spacing;
+
+        draw_list->AddTriangleFilled(ImVec2(x,y+sz*0.5f), ImVec2(x+sz, y), ImVec2(x+sz, y+sz), col);
+        //draw_list->AddTriangleFilled(ImVec2(x+sz*0.2f,y), ImVec2(x, y+sz-0.5f), ImVec2(x+sz*0.4f, y+sz-0.5f), col); x += sz*0.4f + spacing; // Thin triangle
+        draw_list->AddRectFilledMultiColor(ImVec2(x, y), ImVec2(x + sz, y + sz), IM_COL32(0, 0, 0, 255), IM_COL32(255, 0, 0, 255), IM_COL32(255, 255, 0, 255), IM_COL32(0, 255, 0, 255));
+
+        ImGui::Dummy(ImVec2((sz + spacing) * 10.2f, (sz + spacing) * 3.0f));
+        ImGui::PopItemWidth();
+      ImGui::Text("hey\n");
       ImGui::End();
     }
 
