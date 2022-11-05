@@ -58,19 +58,7 @@ static void glfw_error_callback(int error, const char* description) {
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-// helpful?
-bool get_frame(cv::VideoCapture cap, cv::Mat& frame, cv::ogl::Texture2D& texture, cv::ogl::Buffer& buffer, bool do_buffer) {
-  if (!cap.read(frame))
-    return false;
-
-  if (do_buffer)
-    buffer.copyFrom(frame, cv::ogl::Buffer::PIXEL_UNPACK_BUFFER, true);
-  else
-    texture.copyFrom(frame, true);
-
-  return true;
-}
-
+// ERROR
 // doesn't segfault anymore but still
 // have some memory errors (invalid read)
 // run with valgrind
@@ -260,7 +248,7 @@ int main(int argc, char **argv) {
       // For the demo: add a debug button _BEFORE_ the normal log window contents
       // We take advantage of a rarely used feature: multiple calls to Begin()/End() are appending to the _same_ window.
       // Most of the contents of the window will be added by the log.Draw() call.
-      ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
       ImGui::Begin("Log", &show_log);
       //if (ImGui::SmallButton("[Debug] Add 5 entries"))
       //{
@@ -344,16 +332,12 @@ int main(int argc, char **argv) {
           GLuint texture;
           glGenTextures(1, &texture);
           glBindTexture(GL_TEXTURE_2D, texture);
-
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
           glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-          // ERROR
-          // invalid read of size 16
-          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, front_frame.cols, front_frame.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, front_frame.data);
-          ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texture)), ImVec2(front_frame.cols, front_frame.rows));
+          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, front_frame.cols, front_frame.rows, 0, GL_BGR, GL_UNSIGNED_BYTE, front_frame.data);
+
+          ImGui::Image(reinterpret_cast<void*>( static_cast<intptr_t>( texture ) ), ImVec2( front_frame.cols, front_frame.rows ));
         }
       }
       else {
@@ -379,10 +363,9 @@ int main(int argc, char **argv) {
           glBindTexture(GL_TEXTURE_2D, texture);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
           glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bottom_frame.cols, bottom_frame.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, bottom_frame.data);
+          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bottom_frame.cols, bottom_frame.rows, 0, GL_BGR, GL_UNSIGNED_BYTE, bottom_frame.data);
+
           ImGui::Image(reinterpret_cast<void*>( static_cast<intptr_t>( texture ) ), ImVec2( bottom_frame.cols, bottom_frame.rows ));
         }
       }
@@ -479,6 +462,9 @@ int main(int argc, char **argv) {
 
     glfwSwapBuffers(window);
   }
+
+  front_cap.release();
+  bottom_cap.release();
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
