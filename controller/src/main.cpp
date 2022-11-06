@@ -47,6 +47,7 @@
 
 #include "../include/log.h"
 #include "../include/teensy_console.h"
+#include "../include/camera.h"
 #include <unistd.h>
 
 // TODO
@@ -58,40 +59,10 @@ static void glfw_error_callback(int error, const char* description) {
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-// ERROR
-// doesn't segfault anymore but still
-// have some memory errors (invalid read)
-// run with valgrind
-cv::Mat front_frame;
-cv::Mat bottom_frame;
-cv::VideoCapture front_cap;
-cv::VideoCapture bottom_cap;
-
-bool init_front_camera() {
-  if (front_cap.isOpened()) {
-    return true;
-  }
-  else if (front_cap.open(0)) {
-    printf("Front camera initialized\n");
-    return true;
-  }
-  return false;
-}
-
-bool init_bottom_camera() {
-  if (bottom_cap.isOpened()) {
-    return true;
-  }
-  else if (bottom_cap.open(1)) {
-    printf("Bottom camera initialized\n");
-    return true;
-  }
-  return false;
-}
-
 int main(int argc, char **argv) {
-  static Log log((char*)"log.txt");
-  static TeensyConsole teensy_console;
+  Log log((char*)"log.txt");
+  TeensyConsole teensy_console;
+  Camera camera;
 
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);
@@ -295,21 +266,21 @@ int main(int argc, char **argv) {
       ImGui::Begin("Cameras", &show_camera_window, ImGuiWindowFlags_AlwaysAutoResize);
       if (ImGui::Button("Front Camera")) {
         if (!show_front_camera) {
-          if (init_front_camera()) show_front_camera = true;
+          if (camera.init_front_camera()) show_front_camera = true;
           else show_front_camera_error = true;
         }
       }
-      if (front_cap.isOpened()) {
+      if (camera.front_capture.isOpened()) {
         ImGui::SameLine();
         ImGui::Text("(OPEN)");
       }
       if (ImGui::Button("Bottom Camera")) {
         if (!show_bottom_camera) {
-          if (init_bottom_camera()) show_bottom_camera = true;
+          if (camera.init_bottom_camera()) show_bottom_camera = true;
           else show_bottom_camera_error = true;
         }
       }
-      if (bottom_cap.isOpened()) {
+      if (camera.bottom_capture.isOpened()) {
         ImGui::SameLine();
         ImGui::Text("(OPEN)");
       }
@@ -319,11 +290,11 @@ int main(int argc, char **argv) {
     // front_camera
     if (show_front_camera) {
       ImGui::Begin("Front Camera", &show_front_camera, ImGuiWindowFlags_AlwaysAutoResize);
-      if (front_cap.isOpened()) {
+      if (camera.front_capture.isOpened()) {
         // ERROR
         // Address 0x19572330 is 8 bytes after a block of size 921,672 alloc'd
-        front_cap.read(front_frame);
-        if (front_frame.empty()) {
+        camera.read_frame(0);
+        if (camera.front_frame.empty()) {
           log.AddLog("[ERROR] Blank frame grabbed from front_cap\n");
           show_front_camera = false;
           show_front_camera_error = true;
@@ -335,9 +306,9 @@ int main(int argc, char **argv) {
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
           glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, front_frame.cols, front_frame.rows, 0, GL_BGR, GL_UNSIGNED_BYTE, front_frame.data);
+          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, camera.front_frame.cols, camera.front_frame.rows, 0, GL_BGR, GL_UNSIGNED_BYTE, camera.front_frame.data);
 
-          ImGui::Image(reinterpret_cast<void*>( static_cast<intptr_t>( texture ) ), ImVec2( front_frame.cols, front_frame.rows ));
+          ImGui::Image(reinterpret_cast<void*>( static_cast<intptr_t>( texture ) ), ImVec2( camera.front_frame.cols, camera.front_frame.rows ));
         }
       }
       else {
@@ -350,9 +321,8 @@ int main(int argc, char **argv) {
     // bottom_camera
     if (show_bottom_camera) {
       ImGui::Begin("Bottom Camera", &show_bottom_camera, ImGuiWindowFlags_AlwaysAutoResize);
-      if (bottom_cap.isOpened()) {
-        bottom_cap.read(bottom_frame);
-        if (bottom_frame.empty()) {
+      if (camera.bottom_capture.isOpened()) {
+        if (!camera.read_frame(1)) {
           log.AddLog("[ERROR] Blank frame grabbed from bottom_cap\n");
           show_bottom_camera = false;
           show_bottom_camera_error = true;
@@ -364,9 +334,9 @@ int main(int argc, char **argv) {
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
           glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bottom_frame.cols, bottom_frame.rows, 0, GL_BGR, GL_UNSIGNED_BYTE, bottom_frame.data);
+          glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, camera.bottom_frame.cols, camera.bottom_frame.rows, 0, GL_BGR, GL_UNSIGNED_BYTE, camera.bottom_frame.data);
 
-          ImGui::Image(reinterpret_cast<void*>( static_cast<intptr_t>( texture ) ), ImVec2( bottom_frame.cols, bottom_frame.rows ));
+          ImGui::Image(reinterpret_cast<void*>( static_cast<intptr_t>( texture ) ), ImVec2( camera.bottom_frame.cols, camera.bottom_frame.rows ));
         }
       }
       else {
@@ -462,9 +432,6 @@ int main(int argc, char **argv) {
 
     glfwSwapBuffers(window);
   }
-
-  front_cap.release();
-  bottom_cap.release();
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();

@@ -15,6 +15,7 @@ set(SOURCES
   src/log.cpp
   src/teensy_console.cpp
   src/serial.cpp
+  src/camera.cpp
   src/imgui/imgui_impl_glfw.cpp                           
   src/imgui/imgui_impl_opengl3.cpp
   src/imgui/imgui.cpp

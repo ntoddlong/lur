@@ -79,7 +79,6 @@ bool Serial::write_string(const char* s) {
       next_byte += bytes;
     }
   }
-  //printf("wrote %zu bytes\n", bytes_written);
   return true;
 }
 
@@ -110,7 +109,7 @@ char* Serial::read_string() {
   }
   // Here we assume we received ASCII data, but you might be sending raw bytes (in that case, don't try and
   // print it to the screen like this!)
-  printf("%s\n", read_buf);
+  //printf("%s\n", read_buf);
   char* s = read_buf;
   return s;
 }

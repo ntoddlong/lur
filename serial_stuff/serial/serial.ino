@@ -30,7 +30,7 @@ void loop() {
     ++bytes_read;
   }
   buf[bytes_read] = '\0';
-  if (bytes_read) Serial.printf("[%lu] %s\n", bytes_read, buf);
+  if (bytes_read) Serial.printf("[Teensy][%lu] %s\n", bytes_read, buf);
   Serial.flush();
   delay(1000);
 }

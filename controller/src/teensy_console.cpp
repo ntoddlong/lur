@@ -49,7 +49,7 @@ void TeensyConsole::AddLog(const char* fmt, ...) {
 }
 
 void TeensyConsole::Draw(const char* title, bool* p_open) {
-  ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
   if (!ImGui::Begin(title, p_open)) {
     ImGui::End();
     return;
@@ -207,10 +207,8 @@ void TeensyConsole::ExecCommand(const char* command_line) {
       AddLog("%3d: %s\n", i, history[i]);
   }
   else {
-    AddLog("Unknown command: '%s'\n", command_line);
     serial.write_string(command_line);
-    //printf("%s\n", serial.read_string());
-    serial.read_string();
+    AddLog("%s\n", serial.read_string());
   }
 
   // On command input, we scroll to bottom even if auto_scroll==false
