@@ -4,7 +4,7 @@
 // doesn't segfault anymore but still
 // have some memory errors (invalid read)
 // run with valgrind
-Camera::Camera() {
+Camera::Camera() : front_capture(), bottom_capture(), front_frame(), bottom_frame() {
 }
 Camera::~Camera() {
   front_capture.release();
@@ -39,12 +39,12 @@ bool Camera::init_bottom_camera() {
 
 bool Camera::read_frame(int id) {
   if (id) {
-    bottom_capture.read(bottom_frame);
-    if (bottom_frame.empty()) return false;
+    this->bottom_capture.read(bottom_frame);
+    if (this->bottom_frame.empty()) return false;
   }
   else {
-    front_capture.read(front_frame);
-    if (front_frame.empty()) return false;
+    this->front_capture.read(front_frame);
+    if (this->front_frame.empty()) return false;
   }
   return true;
 }

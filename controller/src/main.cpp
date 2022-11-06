@@ -60,9 +60,9 @@ static void glfw_error_callback(int error, const char* description) {
 }
 
 int main(int argc, char **argv) {
-  Log log((char*)"log.txt");
-  TeensyConsole teensy_console;
-  Camera camera;
+  static Log log((char*)"log.txt");
+  static TeensyConsole teensy_console;
+  static Camera camera;
 
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);
