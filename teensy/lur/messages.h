@@ -1,6 +1,9 @@
 #include <stdint.h> 
 
-enum class MESSAGE: uint8_t {
+struct Message {
+};
+
+enum class HEADER: uint8_t {
   message_test,
   ok,
   error,
