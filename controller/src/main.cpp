@@ -377,7 +377,7 @@ int main(int argc, char **argv) {
       ImGui::DragFloat("Size", &sz, 0.2f, 50.0f, 100.0f, "%.0f");
 
       // choose color
-      static ImVec4 colf = ImVec4(1.0f, 1.0f, 0.4f, 1.0f);
+      static ImVec4 colf = ImVec4(0.75f, 0.75f, 1.0f, 1.0f);
       ImGui::ColorEdit4("Color", &colf.x);
       ImGui::PushItemWidth(-ImGui::GetFontSize()*0.25f);
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
