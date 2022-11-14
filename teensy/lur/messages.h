@@ -1,10 +1,6 @@
 #include <stdint.h> 
 
-struct Message {
-};
-
-enum class HEADER: uint8_t {
-  message_test,
+enum class ID: uint8_t {
   ok,
   error,
   disarm,
@@ -13,4 +9,15 @@ enum class HEADER: uint8_t {
   get_mode,
   manual_control,
   thruster_test,
+};
+
+enum class ERROR: uint8_t {
+  invalid,
+  parse,
+  checksum,
+  disarmed,
+};
+
+struct Message {
+  ID kind;
 };

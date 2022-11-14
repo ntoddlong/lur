@@ -16,6 +16,8 @@
 
 #include <stdint.h>
 
+#include "messages.h"
+
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 
 const int NUM_THRUSTERS    = 8;
@@ -52,6 +54,14 @@ const int imu_timeout      = 15000; // in milliseconds
 const int serial_baud      = 9600;
 const int serial_timeout   = 15000; // in milliseconds
 
+// padding 
+// message id - 1 byte
+// data       - variable
+// checksum   
+// padding
+//
+// set mode
+// get mode
 enum Mode {
   disarmed,
   armed,
