@@ -1,9 +1,38 @@
-usb bandwidth might be an issue
-  decrease image size?
+Camera/opencv
+https://www.e-consystems.com/Articles/Camera/accessing_cameras_in_opencv_with_high_performance.asp
+https://github.com/intel/ros2_intel_realsense/blob/master/realsense_ros2_camera/src/realsense_camera_node.cpp
+https://learnopencv.com/depth-perception-using-stereo-camera-python-c/
+https://docs.opencv.org/3.4/d4/db9/samples_2dnn_2object_detection_8cpp-example.html
+https://celarek.at/2015/03/cross-platform-development-for-opengl-cuda-and-friends/
 
-how to do tether?
+Brain/state machine
+https://github.com/BehaviorTree/BehaviorTree.CPP
 
-how to do frontend interface?
-  where to run
-  how to get data
-  how to pass controls
+Controller
+https://blog.conan.io/2019/06/26/An-introduction-to-the-Dear-ImGui-library.html
+https://github.com/acornacorn/teensy_term/blob/master/teensy_term.c
+
+Serial
+https://github.com/gbmhunter/CppLinuxSerial
+https://gist.github.com/yoggy/3323808
+
+Real time ros
+https://docs.ros.org/en/foxy/Tutorials/Demos/Real-Time-Programming.html
+https://roscon.ros.org/2015/presentations/RealtimeROS2.pdf
+
+Jetson
+https://jetsonhacks.com/2015/12/29/gpio-interfacing-nvidia-jetson-tx1/
+https://github.com/jetsonhacks/jetsonTX1GPIO/blob/master/exampleGPIOApp.cpp
+https://github.com/jetsonhacks/jetsonGPIO/blob/master/jetsonGPIO.c
+https://forums.developer.nvidia.com/t/freertos-and-sensor-processing-engine/120756
+https://docs.nvidia.com/jetson/spe/rt-compiling.html
+
+Teensy
+http://www.righto.com/2021/06/deep-dive-into-how-teensy.html
+https://forum.pjrc.com/threads/53548-Arduino-CLI-Alpha-Release-Teensy-Support?p=299430&viewfull=1#post299430
+
+IMU
+https://forums.adafruit.com/viewtopic.php?f=19&t=126907
+https://forums.adafruit.com/viewtopic.php?f=25&t=108290&p=541754#p541754
+https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/Using-BNO055-over-I2C/td-p/22475
+https://forums.adafruit.com/viewtopic.php?t=83965
